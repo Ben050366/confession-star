@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>有些话，想对你说</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --ink: #1a1625;
+    --mist: #2d2540;
+    --gold: #c8a96e;
+    --silver: #b8c4d4;
+    --rose: #d4a0a0;
+    --pale: #f0e8e0;
+  }
+
+  body {
+    background: var(--ink);
+    min-height: 100vh;
+    overflow: hidden;
+    font-family: 'Cormorant Garamond', serif;
+    cursor: default;
+    touch-action: none;
+  }
+
+  canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+
+  .aurora {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 30%, rgba(80,50,120,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(100,70,90,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 60% at 50% 80%, rgba(60,40,80,0.12) 0%, transparent 70%);
+    animation: aurora-shift 12s ease-in-out infinite alternate;
+  }
+
+  @keyframes aurora-shift {
+    0% { opacity: 0.6; transform: scale(1) translateY(0); }
+    50% { opacity: 1; transform: scale(1.05) translateY(-10px); }
+    100% { opacity: 0.7; transform: scale(0.98) translateY(5px); }
+  }
+
+  /* ── Intro screen ── */
+  #intro {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    transition: opacity 1.8s ease, visibility 1.8s;
+  }
+  #intro.hidden { opacity: 0; visibility: hidden; }
+
+  .intro-circle {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    border: 1px solid rgba(200,169,110,0.3);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    animation: pulse-ring 3s ease-in-out infinite;
+    margin-bottom: 32px;
+  }
+  .intro-circle::before {
+    content: '';
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 1px solid rgba(200,169,110,0.15);
+    animation: pulse-ring 3s ease-in-out infinite 0.5s;
+  }
+  .intro-star {
+    font-size: 2.4rem;
+    animation: twinkle-icon 2s ease-in-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.12); opacity: 1; }
+  }
+  @keyframes twinkle-icon {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+
+  .intro-hint {
+    font-family: 'Ma Shan Zheng', cursive;
+    color: rgba(200,169,110,0.7);
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    animation: fade-breath 2.5s ease-in-out infinite;
+  }
+  @keyframes fade-breath {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* ── Main content ── */
+  #main {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 2s ease 0.5s;
+  }
+  #main.visible { opacity: 1; pointer-events: auto; }
+
+  .card {
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+  }
+
+  .date-line {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.78rem;
+    color: rgba(200,169,110,0.5);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    animation: slide-up 1s ease both;
+    animation-delay: 0.2s;
+  }
+
+  .title-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1rem;
+    color: rgba(184,196,212,0.6);
+    letter-spacing: 0.25em;
+    margin-bottom: 14px;
+    animation: slide-up 1s ease both;
+    animation-delay: 0.4s;
+  }
+
+  .title-zh {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 2.2rem;
+    color: var(--pale);
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    margin-bottom: 36px;
+    animation: slide-up 1s ease both;
+    animation-delay: 0.6s;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    animation: slide-up 1s ease both;
+    animation-delay: 0.8s;
+  }
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200,169,110,0.4), transparent);
+  }
+  .divider-star { color: var(--gold); font-size: 0.7rem; opacity: 0.8; }
+
+  .message {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.15rem;
+    color: rgba(240,232,224,0.85);
+    line-height: 2.2;
+    letter-spacing: 0.08em;
+    margin-bottom: 40px;
+    animation: slide-up 1s ease both;
+    animation-delay: 1s;
+  }
+  .message em {
+    font-style: normal;
+    color: var(--rose);
+  }
+
+  .signature-wrap {
+    animation: slide-up 1s ease both;
+    animation-delay: 1.2s;
+  }
+  .signature-label {
+    font-style: italic;
+    font-size: 0.75rem;
+    color: rgba(184,196,212,0.45);
+    letter-spacing: 0.3em;
+    margin-bottom: 8px;
+  }
+  .signature {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 1.5rem;
+    color: rgba(200,169,110,0.75);
+    letter-spacing: 0.2em;
+  }
+
+  /* shooting star flare */
+  .flare {
+    position: fixed;
+    width: 2px; height: 2px;
+    border-radius: 50%;
+    background: #fff;
+    z-index: 5;
+    pointer-events: none;
+    animation: flare-pop 0.6s ease forwards;
+  }
+  @keyframes flare-pop {
+    0% { transform: scale(0); opacity: 1; }
+    50% { transform: scale(6); opacity: 0.5; box-shadow: 0 0 8px 4px rgba(200,169,110,0.4); }
+    100% { transform: scale(0); opacity: 0; }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* subtle vignette */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 8;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(15,10,28,0.65) 100%);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="sky"></canvas>
+<div class="aurora"></div>
+<div class="vignette"></div>
+
+<!-- Intro tap screen -->
+<div id="intro">
+  <div class="intro-circle">
+    <span class="intro-star">✦</span>
+  </div>
+  <p class="intro-hint">轻触，开启星空</p>
+</div>
+
+<!-- Main confession -->
+<div id="main">
+  <div class="card">
+    <p class="date-line" id="dateLine">— tonight —</p>
+    <p class="title-en">a confession beneath the stars</p>
+    <h1 class="title-zh">满天星辰<br>皆为你而亮</h1>
+    <div class="divider">
+      <span class="divider-line"></span>
+      <span class="divider-star">✦</span>
+      <span class="divider-line"></span>
+    </div>
+    <p class="message">
+      我不知道如何开口<br>
+      只好借这片星空替我说——<br><br>
+      每颗星，都是<em>想你</em>的瞬间<br>
+      它们已经<em>数不清了</em>
+    </p>
+    <div class="signature-wrap">
+      <p class="signature-label">sincerely</p>
+      <p class="signature">那个想靠近你的人</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Date line ──
+const d = new Date();
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+document.getElementById('dateLine').textContent =
+  `— ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} —`;
+
+// ── Star field (canvas) ──
+const canvas = document.getElementById('sky');
+const ctx = canvas.getContext('2d');
+let W, H, stars = [], shooters = [];
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); buildStars(); });
+
+// Color palette: cool silver, warm gold, pale rose
+const palettes = [
+  [220,225,240], [200,169,110], [212,180,180],
+  [180,200,220], [240,235,220], [190,175,210]
+];
+
+function rand(a, b) { return Math.random() * (b - a) + a; }
+
+function buildStars() {
+  stars = [];
+  const N = Math.floor(W * H / 2200);
+  for (let i = 0; i < N; i++) {
+    const c = palettes[Math.floor(Math.random() * palettes.length)];
+    stars.push({
+      x: rand(0, W), y: rand(0, H),
+      r: rand(0.3, 1.6),
+      alpha: rand(0.3, 1),
+      speed: rand(0.003, 0.012),
+      phase: rand(0, Math.PI * 2),
+      color: c,
+      glow: Math.random() > 0.8
+    });
+  }
+}
+buildStars();
+
+// Shooting stars
+function spawnShooter() {
+  const angle = rand(-0.3, 0.3);
+  shooters.push({
+    x: rand(0, W * 0.7), y: rand(0, H * 0.4),
+    vx: rand(6, 14), vy: rand(1.5, 4),
+    len: rand(80, 180),
+    alpha: 1,
+    tail: []
+  });
+}
+setInterval(spawnShooter, 2800);
+
+let t = 0;
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  t += 0.016;
+
+  // Stars
+  stars.forEach(s => {
+    const a = s.alpha * (0.6 + 0.4 * Math.sin(t * s.speed * 60 + s.phase));
+    const [r, g, b] = s.color;
+    ctx.save();
+    ctx.globalAlpha = a;
+    if (s.glow) {
+      const gr = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 4);
+      gr.addColorStop(0, `rgba(${r},${g},${b},0.7)`);
+      gr.addColorStop(1, 'transparent');
+      ctx.fillStyle = gr;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r * 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Shooting stars
+  shooters.forEach((sh, i) => {
+    sh.x += sh.vx;
+    sh.y += sh.vy;
+    sh.alpha -= 0.018;
+
+    ctx.save();
+    ctx.globalAlpha = sh.alpha;
+    const grad = ctx.createLinearGradient(sh.x - sh.vx * 10, sh.y - sh.vy * 10, sh.x, sh.y);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(0.6, 'rgba(200,190,220,0.4)');
+    grad.addColorStop(1, 'rgba(255,250,240,0.95)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(sh.x - sh.vx * 10, sh.y - sh.vy * 10);
+    ctx.lineTo(sh.x, sh.y);
+    ctx.stroke();
+    // head glow
+    const hg = ctx.createRadialGradient(sh.x, sh.y, 0, sh.x, sh.y, 4);
+    hg.addColorStop(0, 'rgba(255,250,240,0.9)');
+    hg.addColorStop(1, 'transparent');
+    ctx.fillStyle = hg;
+    ctx.beginPath();
+    ctx.arc(sh.x, sh.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    if (sh.alpha <= 0 || sh.x > W + 50) shooters.splice(i, 1);
+  });
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+// ── Intro → Main transition ──
+const intro = document.getElementById('intro');
+const main  = document.getElementById('main');
+
+function reveal(x, y) {
+  intro.classList.add('hidden');
+  setTimeout(() => main.classList.add('visible'), 400);
+  spawnFlare(x, y);
+  setTimeout(() => spawnShooter(), 600);
+  setTimeout(() => spawnShooter(), 1400);
+}
+
+intro.addEventListener('click', e => reveal(e.clientX, e.clientY));
+intro.addEventListener('touchend', e => {
+  const t = e.changedTouches[0];
+  reveal(t.clientX, t.clientY);
+}, { passive: true });
+
+// Auto-reveal after 5s if no tap
+setTimeout(() => {
+  if (!intro.classList.contains('hidden')) reveal(W/2, H/2);
+}, 5000);
+
+// Flare effect on tap
+function spawnFlare(x, y) {
+  const el = document.createElement('div');
+  el.className = 'flare';
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 700);
+}
+
+// Tap on main to spawn shooting star
+document.addEventListener('click', e => {
+  if (!main.classList.contains('visible')) return;
+  spawnFlare(e.clientX, e.clientY);
+  spawnShooter();
+});
+document.addEventListener('touchend', e => {
+  if (!main.classList.contains('visible')) return;
+  const t = e.changedTouches[0];
+  spawnFlare(t.clientX, t.clientY);
+  spawnShooter();
+}, { passive: true });
+</script>
+</body>
+</html>
